@@ -3,6 +3,7 @@ import pandas as pd
 import sklearn
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn import preprocessing
+from sklearn.model_selection import StratifiedShuffleSplit
 
 data = pd.read_csv("data.csv")
 
@@ -17,16 +18,19 @@ original_values = data.overall.unique() #used later
 data = data.apply(le.fit_transform)
 
 X = data.drop("overall", 1).to_numpy() 
-Y = data["overall"].to_numpy()
+y = data["overall"].to_numpy()
+"""
+stratified sampling - samples representative of the population
+x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.1, stratify = y, random_state = 27)
+here - not possible due to too few instances of some class (Value Error: The least populated class in y has only 1 member, which is too few. The minimum number of groups for any class cannot be less than 2.)
+"""
 
-x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, Y, test_size = 0.05) #0.05 for test data due to the size of the dataset (over 18k records)
+x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.1)
 
 model = KNeighborsClassifier(n_neighbors=3)
 model.fit(x_train, y_train)
 
 acc = model.score(x_test, y_test)
-
-x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, Y, test_size = 0.05)
 
 model = KNeighborsClassifier(n_neighbors=5)
 model.fit(x_train, y_train)
@@ -36,7 +40,7 @@ best_k = 3
 best_score = acc
 
 for _ in range(50):
-    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, Y, test_size = 0.05)
+    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.1)
     for k in range(4, 12):
         model = KNeighborsClassifier(n_neighbors=k)
         model.fit(x_train, y_train)
@@ -56,7 +60,7 @@ from joblib import load, dump
 
 best_score = 0
 for _ in range(100):
-    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, Y, test_size = 0.05) 
+    x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(X, y, test_size = 0.1) 
 
     model = KNeighborsClassifier(n_neighbors=5)
     model.fit(x_train, y_train)
